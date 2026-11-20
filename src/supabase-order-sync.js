@@ -1,10 +1,4 @@
-import { createClient } from '@supabase/supabase-js';
-
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL?.trim();
-const supabasePublicKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY?.trim();
-const supabase = supabaseUrl && supabasePublicKey
-  ? createClient(supabaseUrl, supabasePublicKey)
-  : null;
+import { isSupabaseConfigured, supabase } from './supabase-client.js';
 
 function makeOrderReference() {
   const value = globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
@@ -12,9 +6,16 @@ function makeOrderReference() {
 }
 
 async function saveTamilOrder(details) {
-  if (!supabase) return { status: 'not_configured' };
+  if (!isSupabaseConfigured || !supabase) return { status: 'not_configured' };
+
+  const { data: price, error: priceError } = await supabase.from('book_prices')
+    .select('price_paise,currency').eq('book_id', 'tamil').maybeSingle();
+  if (priceError) return { status: 'error' };
+  if (!price || price.price_paise == null) return { status: 'price_not_set' };
 
   const reference = details.orderReference || makeOrderReference();
+  const unitPricePaise = Number(price.price_paise);
+  const totalPricePaise = unitPricePaise * Number(details.quantity);
   const { error } = await supabase.from('book_orders').insert({
     order_reference: reference,
     edition: 'tamil',
@@ -29,13 +30,26 @@ async function saveTamilOrder(details) {
     country: details.country,
     quantity: Number(details.quantity),
     delivery_notes: details.notes || null,
+    unit_price_paise: unitPricePaise,
+    total_price_paise: totalPricePaise,
     status: 'pending_payment'
   });
 
   if (error) return { status: 'error' };
-  return { status: 'saved', reference };
+  return { status: 'saved', reference, unitPricePaise, totalPricePaise, currency: price.currency || 'INR' };
 }
 
-// The existing UI calls this after the customer reviews their details.
+async function getTamilBookPrice() {
+  if (!isSupabaseConfigured || !supabase) return null;
+  const { data, error } = await supabase.from('book_prices')
+    .select('price_paise,currency').eq('book_id', 'tamil').maybeSingle();
+  if (error) throw error;
+  return data && data.price_paise != null
+    ? { pricePaise: Number(data.price_paise), currency: data.currency || 'INR' }
+    : null;
+}
+
+// The storefront UI calls these browser-safe operations; all admin access stays server-side.
 window.bookOrderSubmit = saveTamilOrder;
-window.bookOrderSubmit.isConfigured = Boolean(supabase);
+window.bookOrderSubmit.isConfigured = isSupabaseConfigured;
+window.bookGetPrice = getTamilBookPrice;

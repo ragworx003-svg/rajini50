@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="theme-color" content="#efe8d8" />
+    <title>Store dashboard · 21 Principles</title>
+  </head>
+  <body>
+    <main class="admin-shell">
+      <header class="admin-topbar">
+        <a href="/" class="admin-brand">21 Principles <span>· Store dashboard</span></a>
+        <a href="/" class="admin-back">← View the book site</a>
+      </header>
+
+      <section id="login-panel" class="admin-login" hidden>
+        <p class="admin-eyebrow">Private access</p>
+        <h1>Store dashboard</h1>
+        <p class="admin-intro">Enter the admin PIN to review Tamil book orders and store activity.</p>
+        <form id="login-form">
+          <label for="admin-pin">Admin PIN</label>
+          <input id="admin-pin" name="pin" type="password" inputmode="numeric" autocomplete="current-password" required maxlength="128" />
+          <button type="submit" class="admin-primary">Sign in</button>
+          <p id="login-message" class="admin-message" role="status" aria-live="polite"></p>
+        </form>
+      </section>
+
+      <section id="dashboard" hidden>
+        <div class="admin-heading">
+          <div><p class="admin-eyebrow">Last 30 days</p><h1>Store overview</h1></div>
+          <button id="logout-button" class="admin-secondary" type="button">Sign out</button>
+        </div>
+        <p class="admin-note">This site has no customer accounts, so activity is measured as unique browsers and visits. Time counts while the page is visible.</p>
+
+        <div class="admin-metrics" aria-label="Visitor activity">
+          <article class="admin-metric"><p>Unique visitors</p><strong id="metric-visitors">—</strong></article>
+          <article class="admin-metric"><p>Orders</p><strong id="metric-orders">—</strong></article>
+          <article class="admin-metric"><p>Visits</p><strong id="metric-sessions">—</strong></article>
+          <article class="admin-metric"><p>Average active time</p><strong id="metric-average">—</strong></article>
+          <article class="admin-metric"><p>Total active time</p><strong id="metric-total">—</strong></article>
+        </div>
+
+        <section class="admin-panel" aria-labelledby="price-title">
+          <div class="admin-panel-heading"><div><p class="admin-eyebrow">Tamil edition</p><h2 id="price-title">Book price</h2></div></div>
+          <p class="admin-panel-copy">Changing this only updates the Tamil book price. New orders will save the current price snapshot.</p>
+          <form id="price-form" class="admin-price-form">
+            <label for="price-rupees">Price (INR)</label>
+            <div class="admin-price-row"><span aria-hidden="true">₹</span><input id="price-rupees" name="price" type="number" min="1" max="100000" step="0.01" required /><button type="submit" class="admin-primary">Save price</button></div>
+            <p id="price-message" class="admin-message" role="status" aria-live="polite"></p>
+          </form>
+        </section>
+
+        <section class="admin-panel" aria-labelledby="orders-title">
+          <div class="admin-panel-heading"><div><p class="admin-eyebrow">Tamil edition</p><h2 id="orders-title">Orders</h2></div><button id="refresh-button" class="admin-secondary" type="button">Refresh</button></div>
+          <p id="orders-message" class="admin-message" role="status" aria-live="polite"></p>
+          <div class="admin-table-wrap"><table><thead><tr><th>Order</th><th>Customer</th><th>Delivery address</th><th>Copies</th><th>Total</th><th>Status</th><th>Placed</th></tr></thead><tbody id="orders-body"></tbody></table></div>
+        </section>
+      </section>
+    </main>
+    <script type="module" src="/src/admin.js"></script>
+  </body>
+</html>

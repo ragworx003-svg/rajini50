@@ -55,6 +55,7 @@ export function createEditionUI(React, store, useBook) {
   }
   function Purchase() {
     const [orderOpen,setOrderOpen]=React.useState(false);
+    const [currentPrice,setCurrentPrice]=React.useState(null);
     const dialogRef=React.useRef(null);
     const [orderReady,setOrderReady]=React.useState(false);
     const [saveStatus,setSaveStatus]=React.useState('idle');
@@ -64,7 +65,9 @@ export function createEditionUI(React, store, useBook) {
       const result=window.bookOrderSubmit?await window.bookOrderSubmit(data):{status:'not_configured'};
       if(result.status==='saved') {
         data.orderReference=result.reference;
-        setOrder(data);
+        data.unitPricePaise=result.unitPricePaise;
+        data.totalPricePaise=result.totalPricePaise;
+        setOrder({...data});
       }
       setSaveStatus(result.status);
     }
@@ -76,6 +79,11 @@ export function createEditionUI(React, store, useBook) {
       setOrderReady(true);
       await saveOrderDetails(data);
     }
+    React.useEffect(()=>{
+      let active=true;
+      window.bookGetPrice?.().then(price=>{if(active)setCurrentPrice(price)}).catch(()=>{});
+      return ()=>{active=false};
+    },[]);
     React.useEffect(()=>{
       const dialog=dialogRef.current;
       if(!dialog)return;
@@ -94,6 +102,7 @@ export function createEditionUI(React, store, useBook) {
         h(Cover,{book,small:true}),
         h('div',null,h('p',{className:'edition-language'},book.language),h('h3',{className:'display',lang:book.lang},book.title),
           h('dl',{className:'edition-details'},h('div',null,h('dt',null,'Publisher'),h('dd',null,book.publisher)),h('div',null,h('dt',null,'Print length'),h('dd',null,`${book.pages} pages`)),h('div',null,h('dt',null,'ISBN'),h('dd',null,book.isbn))),
+          book.id==='tamil'&&currentPrice?h('p',{className:'edition-store-price'},`Price · ${new Intl.NumberFormat('en-IN',{style:'currency',currency:currentPrice.currency||'INR'}).format(currentPrice.pricePaise/100)}`):null,
           book.id==='english'
             ? h('div',{className:'edition-buy-options','aria-label':'Buy the English edition'},
                 h('a',{className:'edition-button',href:purchaseLinks.amazon,target:'_blank',rel:'noopener noreferrer'},'Buy on Amazon',h('span',{'aria-hidden':true},' ↗')),
@@ -125,8 +134,9 @@ export function createEditionUI(React, store, useBook) {
                   h('div',{className:'tamil-order-fields tamil-order-last-row'},
                     h('label',null,'Number of copies',h('input',{name:'quantity',type:'number',min:1,max:20,defaultValue:order?.quantity||1,required:true})),
                     h('label',null,'Delivery notes (optional)',h('input',{name:'notes',defaultValue:order?.notes||'',maxLength:300,placeholder:'Anything the delivery team should know?'}))),
+                  h('p',{className:'tamil-order-price'},currentPrice?`Current price: ${new Intl.NumberFormat('en-IN',{style:'currency',currency:currentPrice.currency||'INR'}).format(currentPrice.pricePaise/100)} per copy`:'Tamil book price has not been set yet.'),
                   h('p',{className:'tamil-order-privacy'},window.bookOrderSubmit?.isConfigured?'Submitting this form saves your details to the shop’s private order list. Payment is not taken yet.':'Supabase is not connected yet. Your details stay in this page and are not sent or saved.'),
-                  h('button',{className:'edition-button tamil-order-submit',type:'submit'},'Review order details',h('span',{'aria-hidden':true},' →'))))
+                  h('button',{className:'edition-button tamil-order-submit',type:'submit'},'Submit order details',h('span',{'aria-hidden':true},' →'))))
             : h(React.Fragment,null,
                 h('p',{className:'eyebrow'},'Review · Tamil edition'),
                 h('h3',{id:'tamil-order-title',className:'display'},'Your details are ready'),
@@ -134,17 +144,19 @@ export function createEditionUI(React, store, useBook) {
                   saveStatus==='saving'?'Saving your order details…':
                   saveStatus==='saved'?`Order details saved · Reference ${order.orderReference}`:
                   saveStatus==='error'?'We could not save the order details. Please try again.':
+                  saveStatus==='price_not_set'?'The Tamil book price has not been set. Set it in the admin dashboard, then retry.':
                   'Supabase is not connected yet. No order has been sent or saved.'),
                 h('div',{className:'tamil-order-review'},
                   h('p',null,h('strong',null,order.name),h('br'),order.email,h('br'),order.phone),
                   h('p',null,order.address,order.address2?h('br'):null,order.address2||null,h('br'),`${order.city}, ${order.state} ${order.postalCode}`,h('br'),order.country),
                   h('p',null,`${order.quantity} ${order.quantity===1?'copy':'copies'} of வெற்றிக்கு ஒரு தனி வழி!`),
+                  order.totalPricePaise?h('p',null,`Total: ${new Intl.NumberFormat('en-IN',{style:'currency',currency:'INR'}).format(order.totalPricePaise/100)}`):null,
                   order.notes?h('p',null,`Delivery note: ${order.notes}`):null),
                 h('div',{className:'payment-placeholder'},
                   h('p',{className:'payment-placeholder-label'},'Payment gateway · Integration point'),
                   h('p',null,'Payment is not connected yet. No payment will be taken. '+(saveStatus==='saved'?'The order is saved as pending payment.':'')),
                   h('button',{type:'button',className:'edition-button',disabled:true},'Payment setup coming soon')),
-                saveStatus==='error'?h('button',{type:'button',className:'edition-button',onClick:()=>saveOrderDetails(order)},'Retry saving details'):null,
+                saveStatus==='error'||saveStatus==='price_not_set'?h('button',{type:'button',className:'edition-button',onClick:()=>saveOrderDetails(order)},saveStatus==='price_not_set'?'Check price & save order':'Retry saving details'):null,
                 h('button',{type:'button',className:'edition-text-button',onClick:()=>setOrderReady(false)},'← Edit delivery details'))))));
   }
   return {Hero,Selector,PreviewHeading,Purchase};

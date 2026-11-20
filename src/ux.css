@@ -60,3 +60,5 @@ header.intro-header {
   #inside > div:first-child { margin-left: 0; max-width: 28vw; }
   #inside-title { font-size: clamp(2rem, 3.5vw, 3.75rem); }
 }
+
+.analytics-privacy-note{max-width:1440px;margin:16px auto 0;padding:0 40px;font-size:11px;line-height:1.5;opacity:.58}@media(max-width:767px){.analytics-privacy-note{padding:0 20px}}

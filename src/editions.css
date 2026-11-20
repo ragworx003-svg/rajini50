@@ -102,3 +102,8 @@
   .tamil-order-dialog { max-height: 94dvh; }
   .tamil-order-dialog-inner { padding: 24px 18px; }
 }
+.order-save-status { margin: 14px 0 0; color: #70695b; font-size: 13px; line-height: 1.55; }
+.order-save-status.saved { color: #286246; font-weight: 650; }
+.order-save-status.error, .order-save-status.price_not_set { color: #8e2b2e; font-weight: 650; }
+.tamil-order-price { margin: 2px 0 0; color: #22252c; font-size: 14px; font-weight: 700; }
+.edition-store-price { margin: -10px 0 14px; color: #8e2b2e; font-size: 14px; font-weight: 750; }

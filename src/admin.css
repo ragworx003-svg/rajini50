@@ -1,0 +1,51 @@
+:root { color-scheme: light; font-family: Inter, 'Instrument Sans Variable', system-ui, sans-serif; color: #22252c; background: #efe8d8; font-synthesis: none; }
+* { box-sizing: border-box; }
+body { margin: 0; min-width: 320px; }
+button, input { font: inherit; }
+.admin-shell { width: min(1180px, calc(100% - 40px)); margin: 0 auto; padding: 26px 0 80px; }
+.admin-topbar, .admin-heading, .admin-panel-heading { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+.admin-topbar { padding-bottom: 24px; border-bottom: 1px solid #d8cfbd; }
+.admin-brand { color: #22252c; font-family: Georgia, serif; font-size: 20px; text-decoration: none; }
+.admin-brand span { color: #71695c; font-family: system-ui, sans-serif; font-size: 13px; }
+.admin-back { color: #6b292c; font-size: 13px; text-decoration: underline; text-underline-offset: 4px; }
+.admin-login { width: min(440px, 100%); margin: clamp(64px, 14vh, 150px) auto; padding: clamp(24px, 5vw, 40px); border: 1px solid #d8cfbd; border-radius: 14px; background: #f7f2e6; box-shadow: 0 18px 50px #51452d18; }
+.admin-login h1, .admin-heading h1 { margin: 0; font-family: Georgia, serif; font-size: clamp(32px, 5vw, 48px); font-weight: 500; line-height: 1.1; }
+.admin-eyebrow { margin: 0 0 8px; color: #8e2b2e; font-size: 11px; font-weight: 750; letter-spacing: .1em; text-transform: uppercase; }
+.admin-intro, .admin-note, .admin-panel-copy { color: #625d53; font-size: 14px; line-height: 1.65; }
+.admin-intro { margin: 14px 0 24px; }
+.admin-login form, .admin-price-form { display: grid; gap: 10px; }
+.admin-login label, .admin-price-form label { color: #514b40; font-size: 13px; font-weight: 650; }
+.admin-login input, .admin-price-row input { width: 100%; min-height: 48px; padding: 10px 12px; border: 1px solid #cfc5b3; border-radius: 6px; background: #fffdf7; color: #22252c; }
+.admin-login input:focus, .admin-price-row input:focus { outline: 2px solid #324c7e; outline-offset: 2px; }
+.admin-primary, .admin-secondary { min-height: 44px; border-radius: 6px; padding: 10px 16px; font-size: 13px; font-weight: 700; cursor: pointer; }
+.admin-primary { border: 1px solid #8e2b2e; background: #8e2b2e; color: #fff8e7; }
+.admin-primary:hover { background: #732326; }
+.admin-secondary { border: 1px solid #cfc5b3; background: transparent; color: #342f27; }
+.admin-secondary:hover { background: #e9e1d2; }
+.admin-message { min-height: 1.5em; margin: 0; color: #8e2b2e; font-size: 13px; }
+.admin-heading { margin: 38px 0 12px; }
+.admin-heading .admin-eyebrow { margin-bottom: 8px; }
+.admin-note { margin: 0 0 24px; }
+.admin-metrics { display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); gap: 14px; margin-bottom: 22px; }
+.admin-metric, .admin-panel { border: 1px solid #d8cfbd; border-radius: 12px; background: #f7f2e6; }
+.admin-metric { min-height: 112px; padding: 20px; }
+.admin-metric p { margin: 0 0 14px; color: #70695b; font-size: 12px; }
+.admin-metric strong { color: #8e2b2e; font-family: Georgia, serif; font-size: clamp(24px, 3vw, 34px); font-weight: 500; }
+.admin-panel { margin-top: 18px; padding: clamp(18px, 3vw, 28px); }
+.admin-panel-heading h2 { margin: 0; font-family: Georgia, serif; font-size: 28px; font-weight: 500; }
+.admin-panel-copy { margin: 10px 0 18px; font-size: 13px; }
+.admin-price-form { max-width: 440px; }
+.admin-price-row { display: grid; grid-template-columns: auto minmax(0,1fr) auto; align-items: center; gap: 10px; }
+.admin-price-row > span { font-size: 18px; }
+.admin-table-wrap { width: 100%; overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 12px; text-align: left; }
+th, td { min-width: 90px; padding: 12px 10px; border-top: 1px solid #ded6c8; vertical-align: top; }
+th { color: #746b5e; font-size: 10px; letter-spacing: .04em; text-transform: uppercase; }
+td { line-height: 1.5; }
+td:first-child { min-width: 155px; font-weight: 650; }
+td:nth-child(2) { min-width: 190px; }
+td:nth-child(3) { min-width: 220px; }
+.admin-status { display: inline-block; border-radius: 99px; padding: 4px 8px; background: #ece2c9; color: #51422a; font-size: 10px; white-space: nowrap; }
+[hidden] { display: none !important; }
+@media (max-width: 760px) { .admin-shell { width: min(100% - 28px, 640px); padding-top: 18px; } .admin-brand { font-size: 17px; } .admin-brand span { display: block; margin-top: 3px; font-size: 11px; } .admin-metrics { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; } .admin-metric { min-height: 100px; padding: 16px; } .admin-panel-heading { align-items: flex-start; } }
+@media (max-width: 420px) { .admin-back { max-width: 98px; font-size: 11px; text-align: right; } .admin-price-row { grid-template-columns: auto 1fr; } .admin-price-row .admin-primary { grid-column: 1 / -1; } }
