@@ -64,3 +64,41 @@
   .edition-purchase { padding: 60px 20px; }
   .edition-order-card { grid-template-columns: 85px 1fr; padding: 22px; gap: 22px; }
 }
+
+/* Purchase options and Tamil order form */
+.edition-order-card > div:last-child { min-width: 0; }
+.edition-order-card .edition-button { width: 100%; }
+.edition-buy-options { display: grid; gap: 10px; margin-top: 4px; }
+.edition-buy-options .edition-button-secondary { background: #324c7e; }
+.edition-buy-options .edition-button-secondary:hover { background: #24385f; }
+.edition-order-card .edition-text-button { color: #514b40; }
+.tamil-order-dialog { width: min(720px, calc(100vw - 28px)); max-width: none; max-height: min(90dvh, 900px); margin: auto; padding: 0; overflow: auto; border: 1px solid #d8cfbd; border-radius: 16px; background: #f7f2e6; color: #22252c; box-shadow: 0 28px 90px #14120d55; }
+.tamil-order-dialog::backdrop { background: #151b25b8; backdrop-filter: blur(4px); }
+.tamil-order-dialog-inner { position: relative; padding: clamp(24px, 5vw, 44px); }
+.tamil-order-dialog .eyebrow { margin-bottom: 10px; color: #8e2b2e; font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.tamil-order-dialog h3 { max-width: 16ch; font-size: clamp(1.8rem, 5vw, 2.8rem); line-height: 1.1; }
+.tamil-order-lead { margin: 12px 36px 24px 0; color: #625d53; font-size: 14px; line-height: 1.6; }
+.tamil-order-close { position: absolute; top: 16px; right: 16px; display: grid; width: 40px; height: 40px; place-items: center; border-radius: 50%; background: #e9e1d2; color: #22252c; font-size: 26px; line-height: 1; cursor: pointer; }
+.tamil-order-close:hover { background: #ddd3c1; }
+.tamil-order-form { display: grid; gap: 16px; }
+.tamil-order-form label { display: grid; gap: 6px; color: #4f4a40; font-size: 12px; font-weight: 600; }
+.tamil-order-form input { width: 100%; min-height: 46px; border: 1px solid #cfc5b3; border-radius: 6px; background: #fffdf7; padding: 10px 12px; color: #22252c; font-size: 15px; }
+.tamil-order-form input:focus { outline: 2px solid #324c7e; outline-offset: 1px; border-color: #324c7e; }
+.tamil-order-form fieldset { display: grid; gap: 14px; min-width: 0; border: 1px solid #d8cfbd; border-radius: 9px; padding: 16px; }
+.tamil-order-form legend { padding: 0 6px; color: #8e2b2e; font-size: 13px; font-weight: 700; }
+.tamil-order-fields { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 14px; }
+.tamil-order-privacy { color: #70695b; font-size: 12px; line-height: 1.55; }
+.tamil-order-submit { min-height: 50px; }
+.tamil-order-review { display: grid; gap: 14px; margin: 22px 0; padding: 20px; border: 1px solid #d8cfbd; border-radius: 9px; background: #fffdf7; font-size: 14px; line-height: 1.65; overflow-wrap: anywhere; }
+.payment-placeholder { margin: 18px 0 10px; padding: 18px; border: 1px dashed #8e2b2e80; border-radius: 9px; background: #8e2b2e08; }
+.payment-placeholder-label { margin-bottom: 8px; color: #8e2b2e; font-size: 12px; font-weight: 700; letter-spacing: .04em; }
+.payment-placeholder > p:nth-child(2) { margin-bottom: 14px; color: #625d53; font-size: 13px; line-height: 1.55; }
+.payment-placeholder .edition-button:disabled { width: 100%; cursor: not-allowed; opacity: .6; transform: none; }
+@media (max-width: 560px) {
+  .edition-order-card { grid-template-columns: 72px minmax(0,1fr); gap: 16px; padding: 18px; }
+  .edition-order-card h3 { font-size: 20px; }
+  .edition-order-card h3:lang(ta) { font-size: 19px; }
+  .tamil-order-fields { grid-template-columns: 1fr; }
+  .tamil-order-dialog { max-height: 94dvh; }
+  .tamil-order-dialog-inner { padding: 24px 18px; }
+}

@@ -4,6 +4,12 @@ export const editions = [
   {id:'tamil', language:'தமிழ் · Tamil', lang:'ta', title:'வெற்றிக்கு ஒரு தனி வழி!', subtitle:'ரஜினியிடமிருந்து கற்க வேண்டிய 21 மேலாண்மை கொள்கைகள்', publisher:'மின்கவி · Min E Kavi', pages:230, isbn:'978-93-6274-038-0', cover:'/books/tamil/cover-wrap.jpg'}
 ];
 
+// Replace these ISBN search destinations with direct product pages when available.
+export const purchaseLinks = {
+  amazon: 'https://www.amazon.in/s?k=9781971939988',
+  inkscribe: 'https://store.theinkscribe.com/search?q=9781971939988'
+};
+
 export function createEditionUI(React, store, useBook) {
   const h=React.createElement;
   function select(id, navigate=false) {
@@ -48,14 +54,82 @@ export function createEditionUI(React, store, useBook) {
     return h('div',{className:'edition-preview-heading'},h('p',{className:'eyebrow text-star'},'Inside the books'),h('h2',{id:'inside-title',className:'display'},'Explore in your language.'),h(Selector));
   }
   function Purchase() {
+    const [orderOpen,setOrderOpen]=React.useState(false);
+    const dialogRef=React.useRef(null);
+    const [orderReady,setOrderReady]=React.useState(false);
+    const [order,setOrder]=React.useState(null);
+    function reviewOrder(event) {
+      event.preventDefault();
+      const data=Object.fromEntries(new FormData(event.currentTarget));
+      data.quantity=Number(data.quantity);
+      setOrder(data);
+      setOrderReady(true);
+      // Integration point for a future order API / payment gateway.
+      window.dispatchEvent(new CustomEvent('book:tamil-order-ready',{detail:data}));
+    }
+    React.useEffect(()=>{
+      const dialog=dialogRef.current;
+      if(!dialog)return;
+      if(orderOpen&&!dialog.open)dialog.showModal();
+      if(!orderOpen&&dialog.open)dialog.close();
+    },[orderOpen]);
+    function closeOrder() {
+      setOrderOpen(false);
+      setOrderReady(false);
+      setOrder(null);
+    }
     return h('section',{id:'buy',className:'edition-purchase','aria-labelledby':'editions-buy-title'},
-      h('div',{className:'edition-intro'},h('p',{className:'eyebrow'},'Choose your edition'),h('h2',{id:'editions-buy-title',className:'display'},'The same inspiration. Your language.'),h('p',{className:'edition-lead'},'Explore either edition, or contact the author about ordering your copy.')),
+      h('div',{className:'edition-intro'},h('p',{className:'eyebrow'},'Choose your edition'),h('h2',{id:'editions-buy-title',className:'display'},'The same inspiration. Your language.'),h('p',{className:'edition-lead'},'Choose where to buy the English edition, or add your Tamil edition details for checkout.')),
       h('div',{className:'edition-grid'},editions.map(book=>h('article',{key:book.id,className:'edition-order-card'},
         h(Cover,{book,small:true}),
         h('div',null,h('p',{className:'edition-language'},book.language),h('h3',{className:'display',lang:book.lang},book.title),
           h('dl',{className:'edition-details'},h('div',null,h('dt',null,'Publisher'),h('dd',null,book.publisher)),h('div',null,h('dt',null,'Print length'),h('dd',null,`${book.pages} pages`)),h('div',null,h('dt',null,'ISBN'),h('dd',null,book.isbn))),
-          h('a',{className:'edition-button',href:`mailto:skypalani@yahoo.com?subject=${encodeURIComponent(`Enquiry about the ${book.id==='tamil'?'Tamil':'English'} edition`)}`},`Enquire about ${book.id==='tamil'?'Tamil':'English'}`),
-          h('button',{className:'edition-text-button',onClick:()=>select(book.id,true)},'Preview this edition ↑'))))));
+          book.id==='english'
+            ? h('div',{className:'edition-buy-options','aria-label':'Buy the English edition'},
+                h('a',{className:'edition-button',href:purchaseLinks.amazon,target:'_blank',rel:'noopener noreferrer'},'Buy on Amazon',h('span',{'aria-hidden':true},' ↗')),
+                h('a',{className:'edition-button edition-button-secondary',href:purchaseLinks.inkscribe,target:'_blank',rel:'noopener noreferrer'},'Buy from Inkscribe',h('span',{'aria-hidden':true},' ↗')))
+            : h('button',{type:'button',className:'edition-button',onClick:()=>setOrderOpen(true)},'Buy the Tamil edition',h('span',{'aria-hidden':true},' →')),
+          h('button',{type:'button',className:'edition-text-button',onClick:()=>select(book.id,true)},'Preview this edition ↑')))),
+      h('dialog',{ref:dialogRef,className:'tamil-order-dialog','aria-labelledby':'tamil-order-title',onClose:closeOrder,onCancel:event=>{event.preventDefault();closeOrder();}},
+        h('div',{className:'tamil-order-dialog-inner'},
+          h('button',{type:'button',className:'tamil-order-close','aria-label':'Close order form',onClick:closeOrder},'×'),
+          !orderReady
+            ? h(React.Fragment,null,
+                h('p',{className:'eyebrow'},'Tamil edition · Order details'),
+                h('h3',{id:'tamil-order-title',className:'display'},'Where should we send your book?'),
+                h('p',{className:'tamil-order-lead'},'Add your contact and delivery details, then review them before payment.'),
+                h('form',{className:'tamil-order-form',onSubmit:reviewOrder},
+                  h('label',null,'Full name',h('input',{name:'name',autoComplete:'name',defaultValue:order?.name||'',required:true,maxLength:100})),
+                  h('div',{className:'tamil-order-fields'},
+                    h('label',null,'Email address',h('input',{name:'email',type:'email',autoComplete:'email',defaultValue:order?.email||'',required:true,maxLength:160})),
+                    h('label',null,'Phone number',h('input',{name:'phone',type:'tel',autoComplete:'tel',defaultValue:order?.phone||'',required:true,inputMode:'tel',pattern:'[+0-9() .-]{8,20}',title:'Enter a valid phone number'}))),
+                  h('fieldset',null,h('legend',null,'Delivery address'),
+                    h('label',null,'Address line',h('input',{name:'address',autoComplete:'address-line1',defaultValue:order?.address||'',required:true,maxLength:180})),
+                    h('label',null,'Apartment, landmark or area (optional)',h('input',{name:'address2',autoComplete:'address-line2',defaultValue:order?.address2||'',maxLength:180})),
+                    h('div',{className:'tamil-order-fields'},
+                      h('label',null,'City / town',h('input',{name:'city',autoComplete:'address-level2',defaultValue:order?.city||'',required:true,maxLength:100})),
+                      h('label',null,'State',h('input',{name:'state',autoComplete:'address-level1',defaultValue:order?.state||'',required:true,maxLength:100}))),
+                    h('div',{className:'tamil-order-fields'},
+                      h('label',null,'PIN code',h('input',{name:'postalCode',autoComplete:'postal-code',defaultValue:order?.postalCode||'',required:true,inputMode:'numeric',pattern:'[0-9A-Za-z -]{4,12}',maxLength:12})),
+                      h('label',null,'Country',h('input',{name:'country',autoComplete:'country-name',defaultValue:order?.country||'India',required:true,maxLength:80})))),
+                  h('div',{className:'tamil-order-fields tamil-order-last-row'},
+                    h('label',null,'Number of copies',h('input',{name:'quantity',type:'number',min:1,max:20,defaultValue:order?.quantity||1,required:true})),
+                    h('label',null,'Delivery notes (optional)',h('input',{name:'notes',defaultValue:order?.notes||'',maxLength:300,placeholder:'Anything the delivery team should know?'}))),
+                  h('p',{className:'tamil-order-privacy'},'Checkout setup is in progress. Your details stay in this page and are not sent or saved yet.'),
+                  h('button',{className:'edition-button tamil-order-submit',type:'submit'},'Review order details',h('span',{'aria-hidden':true},' →'))))
+            : h(React.Fragment,null,
+                h('p',{className:'eyebrow'},'Review · Tamil edition'),
+                h('h3',{id:'tamil-order-title',className:'display'},'Your details are ready'),
+                h('div',{className:'tamil-order-review'},
+                  h('p',null,h('strong',null,order.name),h('br'),order.email,h('br'),order.phone),
+                  h('p',null,order.address,order.address2?h('br'):null,order.address2||null,h('br'),`${order.city}, ${order.state} ${order.postalCode}`,h('br'),order.country),
+                  h('p',null,`${order.quantity} ${order.quantity===1?'copy':'copies'} of வெற்றிக்கு ஒரு தனி வழி!`),
+                  order.notes?h('p',null,`Delivery note: ${order.notes}`):null),
+                h('div',{className:'payment-placeholder'},
+                  h('p',{className:'payment-placeholder-label'},'Payment gateway · Integration point'),
+                  h('p',null,'Payment is not connected yet. No order has been submitted and no payment will be taken.'),
+                  h('button',{type:'button',className:'edition-button',disabled:true},'Payment setup coming soon')),
+                h('button',{type:'button',className:'edition-text-button',onClick:()=>setOrderReady(false)},'← Edit delivery details'))))));
   }
   return {Hero,Selector,PreviewHeading,Purchase};
 }
