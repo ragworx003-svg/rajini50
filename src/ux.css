@@ -1,0 +1,62 @@
+/* Interaction refinements layered over the supplied compiled stylesheet. */
+html { scroll-padding-top: 5rem; }
+header a { touch-action: manipulation; }
+header > div { min-height: 60px; }
+header a[href="#top"] { white-space: normal; }
+main section[id] { scroll-margin-top: 1rem; }
+button { touch-action: manipulation; }
+[aria-roledescription="carousel"] button {
+  position: relative;
+  min-width: 32px;
+  height: 32px;
+  background: transparent;
+  opacity: 1;
+  cursor: pointer;
+}
+[aria-roledescription="carousel"] button::after {
+  content: "";
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  width: 8px;
+  height: 8px;
+  border-radius: 99px;
+  background: currentColor;
+  opacity: .35;
+  transform: translateX(-50%);
+  transition: width .2s ease, opacity .2s ease;
+}
+[aria-roledescription="carousel"] button[aria-current="true"]::after {
+  width: 24px;
+  opacity: 1;
+}
+[aria-roledescription="carousel"] button:hover::after { opacity: .8; }
+@media (max-width: 600px) {
+  header > div { gap: 1rem; }
+  header a[href="#top"] { max-width: 65%; }
+  [aria-roledescription="carousel"] > div:last-child {
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  html { scroll-behavior: smooth; }
+  .intro-type { animation: none; }
+  .intro-rise { animation-duration: .45s; animation-delay: .1s; }
+  .intro-header { animation-duration: .35s; animation-delay: 0s; }
+  .reveal-ready .reveal { transition-duration: .45s; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}
+/* Keep navigation readable as the scene changes from paper to dark blue. */
+header.intro-header {
+  background: rgba(239, 232, 216, .96);
+  color: #22252c;
+  border-bottom: 1px solid rgba(34, 37, 44, .08);
+}
+@media (min-width: 768px) {
+  #inside > div:first-child { margin-left: 0; max-width: 28vw; }
+  #inside-title { font-size: clamp(2rem, 3.5vw, 3.75rem); }
+}

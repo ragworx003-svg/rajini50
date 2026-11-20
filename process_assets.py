@@ -78,21 +78,7 @@ spine_cov.save("public/books/english/spine.webp", "WEBP", quality=95)
 spine_cov.save("dist/books/english/spine.webp", "WEBP", quality=95)
 print("Saved spine.webp (82x1024)")
 
-# E) Tamil edition cover
-tamil_raw = Image.open("raw_assets/whatsapp_img.jpeg").convert("RGB")
-tamil_target_w, tamil_target_h = 1351, 2048
-tamil_cov = Image.new("RGB", (tamil_target_w, tamil_target_h), (255, 255, 255))
-scaled_w = int(round(tamil_target_h * (tamil_raw.width / tamil_raw.height)))
-scaled_tamil = tamil_raw.resize((scaled_w, tamil_target_h), Image.Resampling.LANCZOS)
-offset_x = (tamil_target_w - scaled_w) // 2
-tamil_cov.paste(scaled_tamil, (offset_x, 0))
-tamil_cov.save("public/books/tamil/cover-front.webp", "WEBP", quality=95)
-tamil_cov.save("dist/books/tamil/cover-front.webp", "WEBP", quality=95)
-back_cov.save("public/books/tamil/cover-back.webp", "WEBP", quality=95)
-back_cov.save("dist/books/tamil/cover-back.webp", "WEBP", quality=95)
-spine_cov.save("public/books/tamil/spine.webp", "WEBP", quality=95)
-spine_cov.save("dist/books/tamil/spine.webp", "WEBP", quality=95)
-print("Saved Tamil edition covers")
+# Tamil assets are prepared separately by scripts/prepare_tamil.py.
 
 # -------------------------------------------------------------
 # 2. SPREADS (3D Textures & 2D Previews)
@@ -218,8 +204,6 @@ for idx, (left_p, right_p) in enumerate(spread_pages):
     spread_num_str = f"spread-{idx+1:02d}.webp"
     spread_2d.save(f"public/books/english/spreads/{spread_num_str}", "WEBP", quality=92)
     spread_2d.save(f"dist/books/english/spreads/{spread_num_str}", "WEBP", quality=92)
-    spread_2d.save(f"public/books/tamil/spreads/{spread_num_str}", "WEBP", quality=92)
-    spread_2d.save(f"dist/books/tamil/spreads/{spread_num_str}", "WEBP", quality=92)
     
     print(f"Spread {idx}: Left(P.{left_p}) & Right(P.{right_p}) -> saved 3D textures & 2D spread")
 
