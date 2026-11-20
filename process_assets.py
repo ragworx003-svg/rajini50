@@ -110,7 +110,7 @@ def build_shadow_mask(w, h, is_left):
     # Create an 8-bit shadow mask where 255 = no shadow, 184 = deepest shadow
     mask = Image.new("L", (w, h), 255)
     draw = ImageDraw.Draw(mask)
-    shadow_w = 125
+    shadow_w = 187
     min_val = 184
     
     if is_left:
@@ -127,8 +127,8 @@ def build_shadow_mask(w, h, is_left):
             draw.line([(x, 0), (x, h)], fill=val)
     return mask
 
-mask_left_3d = build_shadow_mask(1056, 1600, is_left=True)
-mask_right_3d = build_shadow_mask(1056, 1600, is_left=False)
+mask_left_3d = build_shadow_mask(1584, 2400, is_left=True)
+mask_right_3d = build_shadow_mask(1584, 2400, is_left=False)
 
 def apply_gutter_shadow_pil(img, mask):
     # Multiply img by grayscale mask
@@ -152,28 +152,28 @@ for idx, (left_p, right_p) in enumerate(spread_pages):
     right_raw = get_page_img(right_p)
     
     # -----------------------------------------
-    # A) 3D Left & Right textures (1056 x 1600)
+    # A) 3D Left & Right textures (1584 x 2400)
     # -----------------------------------------
-    target_3d_w, target_3d_h = 1056, 1600
+    target_3d_w, target_3d_h = 1584, 2400
     scaled_w = int(round(target_3d_h * (left_raw.width / left_raw.height)))
     
     # Left 3D page
     left_3d = Image.new("RGB", (target_3d_w, target_3d_h), PAGE_BG)
     scaled_left = left_raw.resize((scaled_w, target_3d_h), Image.Resampling.LANCZOS)
-    left_3d.paste(scaled_left, (28, 0))
+    left_3d.paste(scaled_left, ((target_3d_w - scaled_w) // 2, 0))
     left_3d = apply_gutter_shadow_pil(left_3d, mask_left_3d)
     
     # Right 3D page
     right_3d = Image.new("RGB", (target_3d_w, target_3d_h), PAGE_BG)
     scaled_right = right_raw.resize((scaled_w, target_3d_h), Image.Resampling.LANCZOS)
-    right_3d.paste(scaled_right, (28, 0))
+    right_3d.paste(scaled_right, ((target_3d_w - scaled_w) // 2, 0))
     right_3d = apply_gutter_shadow_pil(right_3d, mask_right_3d)
     
     # Save 3D textures
-    left_3d.save(f"public/textures/spread-{idx}-left.webp", "WEBP", quality=92)
-    right_3d.save(f"public/textures/spread-{idx}-right.webp", "WEBP", quality=92)
-    left_3d.save(f"dist/textures/spread-{idx}-left.webp", "WEBP", quality=92)
-    right_3d.save(f"dist/textures/spread-{idx}-right.webp", "WEBP", quality=92)
+    left_3d.save(f"public/textures/spread-{idx}-left.webp", "WEBP", quality=96)
+    right_3d.save(f"public/textures/spread-{idx}-right.webp", "WEBP", quality=96)
+    left_3d.save(f"dist/textures/spread-{idx}-left.webp", "WEBP", quality=96)
+    right_3d.save(f"dist/textures/spread-{idx}-right.webp", "WEBP", quality=96)
     
     # -----------------------------------------
     # B) 2D Spread Preview Image (1600 x 1212)
@@ -197,13 +197,13 @@ for idx, (left_p, right_p) in enumerate(spread_pages):
     
     # Save 2D spread
     spread_2d_path = f"public/images/spread-{idx}.webp"
-    spread_2d.save(spread_2d_path, "WEBP", quality=92)
-    spread_2d.save(f"dist/images/spread-{idx}.webp", "WEBP", quality=92)
+    spread_2d.save(spread_2d_path, "WEBP", quality=96)
+    spread_2d.save(f"dist/images/spread-{idx}.webp", "WEBP", quality=96)
     
     # Save to public/books/english/spreads/
     spread_num_str = f"spread-{idx+1:02d}.webp"
-    spread_2d.save(f"public/books/english/spreads/{spread_num_str}", "WEBP", quality=92)
-    spread_2d.save(f"dist/books/english/spreads/{spread_num_str}", "WEBP", quality=92)
+    spread_2d.save(f"public/books/english/spreads/{spread_num_str}", "WEBP", quality=96)
+    spread_2d.save(f"dist/books/english/spreads/{spread_num_str}", "WEBP", quality=96)
     
     print(f"Spread {idx}: Left(P.{left_p}) & Right(P.{right_p}) -> saved 3D textures & 2D spread")
 

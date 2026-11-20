@@ -1,4 +1,4 @@
-"""Render selected Tamil PDF pages for the book preview. Keeps the full PDF private.
+"""Render selected Tamil PDF pages for high-resolution book textures and previews. Keeps the full PDF private.
 Usage: python3 scripts/prepare_tamil.py '/path/to/Tamil.pdf'
 Cover artwork is used directly through CSS and texture UVs, without repainting it.
 """
@@ -16,20 +16,20 @@ def prepare(pdf):
     out = ROOT / 'public/books/tamil'
     (out/'textures').mkdir(parents=True, exist_ok=True)
     (out/'spreads').mkdir(parents=True, exist_ok=True)
-    pages = {0: Image.new('RGB',(1035,1600),'#fff')}
+    pages = {0: Image.new('RGB',(1560,2400),'#fff')}
     with TemporaryDirectory(prefix='tamil-pages-') as temp:
         for page in sorted(set(n for pair in PAIRS for n in pair) - {0}):
             target=Path(temp)/f'page-{page}'
-            subprocess.run(['pdftoppm','-f',str(page),'-l',str(page),'-singlefile','-scale-to','1600','-png',str(pdf),str(target)],check=True)
+            subprocess.run(['pdftoppm','-f',str(page),'-l',str(page),'-singlefile','-scale-to','2400','-png',str(pdf),str(target)],check=True)
             with Image.open(target.with_suffix('.png')) as image:
-                pages[page]=ImageOps.pad(image.convert('RGB'),(1056,1600),color='white')
+                pages[page]=ImageOps.pad(image.convert('RGB'),(1584,2400),color='white')
         for i,pair in enumerate(PAIRS):
             spread=Image.new('RGB',(1600,1212),'white')
             for side,page in zip(['left','right'],pair):
-                image=ImageOps.pad(pages[page],(1056,1600),color='white')
-                image.save(out/'textures'/f'spread-{i}-{side}.webp','WEBP',quality=90)
+                image=ImageOps.pad(pages[page],(1584,2400),color='white')
+                image.save(out/'textures'/f'spread-{i}-{side}.webp','WEBP',quality=96)
                 spread.paste(image.resize((800,1212),Image.Resampling.LANCZOS),(0 if side=='left' else 800,0))
-            spread.save(out/'spreads'/f'spread-{i+1:02d}.webp','WEBP',quality=90)
+            spread.save(out/'spreads'/f'spread-{i+1:02d}.webp','WEBP',quality=96)
     (out/'preview-pages.json').write_text(json.dumps({'source':pdf.name,'pdfPages':229,'spreads':PAIRS},indent=2)+'\n')
 
 if __name__=='__main__':
