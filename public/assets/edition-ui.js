@@ -57,15 +57,24 @@ export function createEditionUI(React, store, useBook) {
     const [orderOpen,setOrderOpen]=React.useState(false);
     const dialogRef=React.useRef(null);
     const [orderReady,setOrderReady]=React.useState(false);
+    const [saveStatus,setSaveStatus]=React.useState('idle');
     const [order,setOrder]=React.useState(null);
-    function reviewOrder(event) {
+    async function saveOrderDetails(data) {
+      setSaveStatus('saving');
+      const result=window.bookOrderSubmit?await window.bookOrderSubmit(data):{status:'not_configured'};
+      if(result.status==='saved') {
+        data.orderReference=result.reference;
+        setOrder(data);
+      }
+      setSaveStatus(result.status);
+    }
+    async function reviewOrder(event) {
       event.preventDefault();
       const data=Object.fromEntries(new FormData(event.currentTarget));
       data.quantity=Number(data.quantity);
       setOrder(data);
       setOrderReady(true);
-      // Integration point for a future order API / payment gateway.
-      window.dispatchEvent(new CustomEvent('book:tamil-order-ready',{detail:data}));
+      await saveOrderDetails(data);
     }
     React.useEffect(()=>{
       const dialog=dialogRef.current;
@@ -77,6 +86,7 @@ export function createEditionUI(React, store, useBook) {
       setOrderOpen(false);
       setOrderReady(false);
       setOrder(null);
+      setSaveStatus('idle');
     }
     return h('section',{id:'buy',className:'edition-purchase','aria-labelledby':'editions-buy-title'},
       h('div',{className:'edition-intro'},h('p',{className:'eyebrow'},'Choose your edition'),h('h2',{id:'editions-buy-title',className:'display'},'The same inspiration. Your language.'),h('p',{className:'edition-lead'},'Choose where to buy the English edition, or add your Tamil edition details for checkout.')),
@@ -115,11 +125,16 @@ export function createEditionUI(React, store, useBook) {
                   h('div',{className:'tamil-order-fields tamil-order-last-row'},
                     h('label',null,'Number of copies',h('input',{name:'quantity',type:'number',min:1,max:20,defaultValue:order?.quantity||1,required:true})),
                     h('label',null,'Delivery notes (optional)',h('input',{name:'notes',defaultValue:order?.notes||'',maxLength:300,placeholder:'Anything the delivery team should know?'}))),
-                  h('p',{className:'tamil-order-privacy'},'Checkout setup is in progress. Your details stay in this page and are not sent or saved yet.'),
+                  h('p',{className:'tamil-order-privacy'},window.bookOrderSubmit?.isConfigured?'Submitting this form saves your details to the shop’s private order list. Payment is not taken yet.':'Supabase is not connected yet. Your details stay in this page and are not sent or saved.'),
                   h('button',{className:'edition-button tamil-order-submit',type:'submit'},'Review order details',h('span',{'aria-hidden':true},' →'))))
             : h(React.Fragment,null,
                 h('p',{className:'eyebrow'},'Review · Tamil edition'),
                 h('h3',{id:'tamil-order-title',className:'display'},'Your details are ready'),
+                h('p',{className:`order-save-status ${saveStatus}`,'role':'status','aria-live':'polite'},
+                  saveStatus==='saving'?'Saving your order details…':
+                  saveStatus==='saved'?`Order details saved · Reference ${order.orderReference}`:
+                  saveStatus==='error'?'We could not save the order details. Please try again.':
+                  'Supabase is not connected yet. No order has been sent or saved.'),
                 h('div',{className:'tamil-order-review'},
                   h('p',null,h('strong',null,order.name),h('br'),order.email,h('br'),order.phone),
                   h('p',null,order.address,order.address2?h('br'):null,order.address2||null,h('br'),`${order.city}, ${order.state} ${order.postalCode}`,h('br'),order.country),
@@ -127,8 +142,9 @@ export function createEditionUI(React, store, useBook) {
                   order.notes?h('p',null,`Delivery note: ${order.notes}`):null),
                 h('div',{className:'payment-placeholder'},
                   h('p',{className:'payment-placeholder-label'},'Payment gateway · Integration point'),
-                  h('p',null,'Payment is not connected yet. No order has been submitted and no payment will be taken.'),
+                  h('p',null,'Payment is not connected yet. No payment will be taken. '+(saveStatus==='saved'?'The order is saved as pending payment.':'')),
                   h('button',{type:'button',className:'edition-button',disabled:true},'Payment setup coming soon')),
+                saveStatus==='error'?h('button',{type:'button',className:'edition-button',onClick:()=>saveOrderDetails(order)},'Retry saving details'):null,
                 h('button',{type:'button',className:'edition-text-button',onClick:()=>setOrderReady(false)},'← Edit delivery details'))))));
   }
   return {Hero,Selector,PreviewHeading,Purchase};
