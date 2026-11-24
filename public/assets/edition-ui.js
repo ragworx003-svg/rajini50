@@ -59,6 +59,7 @@ export function createEditionUI(React, store, useBook) {
     const dialogRef=React.useRef(null);
     const [orderReady,setOrderReady]=React.useState(false);
     const [saveStatus,setSaveStatus]=React.useState('idle');
+    const [paymentMessage,setPaymentMessage]=React.useState('');
     const [order,setOrder]=React.useState(null);
     async function saveOrderDetails(data) {
       setSaveStatus('saving');
@@ -70,6 +71,60 @@ export function createEditionUI(React, store, useBook) {
         setOrder({...data});
       }
       setSaveStatus(result.status);
+    }
+    async function startTamilPayment() {
+      if(!order?.orderReference||saveStatus!=='saved')return;
+      setPaymentMessage('');
+      setSaveStatus('starting_payment');
+      try {
+        const createResponse=await fetch('/api/create-order',{
+          method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({orderReference:order.orderReference})
+        });
+        const checkoutOrder=await createResponse.json().catch(()=>({}));
+        if(!createResponse.ok)throw new Error(checkoutOrder.error||'Could not start checkout. Please try again.');
+        if(typeof window.Razorpay!=='function')throw new Error('Secure checkout did not load. Check your connection and try again.');
+        let paymentHandled=false;
+        const checkout=new window.Razorpay({
+          key:checkoutOrder.key_id,
+          amount:checkoutOrder.amount,
+          currency:checkoutOrder.currency,
+          name:'21 Principles',
+          description:'Tamil edition · '+order.quantity+' '+(order.quantity===1?'copy':'copies'),
+          order_id:checkoutOrder.order_id,
+          prefill:{name:order.name,email:order.email,contact:order.phone},
+          notes:{order_reference:order.orderReference},
+          theme:{color:'#8e2b2e'},
+          handler:async response=>{
+            paymentHandled=true;
+            setSaveStatus('verifying_payment');
+            try {
+              const verifyResponse=await fetch('/api/verify-payment',{
+                method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},
+                body:JSON.stringify({...response,orderReference:order.orderReference})
+              });
+              const verification=await verifyResponse.json().catch(()=>({}));
+              if(!verifyResponse.ok||verification.verified!==true)throw new Error(verification.error||'Payment could not be verified. Please contact the shop with your order reference.');
+              setOrder({...order,paymentId:response.razorpay_payment_id});
+              setSaveStatus('paid');
+            } catch(error) {
+              setPaymentMessage(error.message);
+              setSaveStatus('verification_error');
+            }
+          },
+          modal:{ondismiss:()=>{if(!paymentHandled)setSaveStatus('payment_cancelled');}}
+        });
+        checkout.on('payment.failed',event=>{
+          paymentHandled=true;
+          setPaymentMessage(event?.error?.description||'Payment failed. Please try another payment method.');
+          setSaveStatus('payment_failed');
+        });
+        setSaveStatus('checkout_open');
+        checkout.open();
+      } catch(error) {
+        setPaymentMessage(error.message||'Could not start checkout. Please try again.');
+        setSaveStatus('payment_failed');
+      }
     }
     async function reviewOrder(event) {
       event.preventDefault();
@@ -95,6 +150,7 @@ export function createEditionUI(React, store, useBook) {
       setOrderReady(false);
       setOrder(null);
       setSaveStatus('idle');
+      setPaymentMessage('');
     }
     return h('section',{id:'buy',className:'edition-purchase','aria-labelledby':'editions-buy-title'},
       h('div',{className:'edition-intro'},h('p',{className:'eyebrow'},'Choose your edition'),h('h2',{id:'editions-buy-title',className:'display'},'The same inspiration. Your language.'),h('p',{className:'edition-lead'},'Choose where to buy the English edition, or add your Tamil edition details for checkout.')),
@@ -145,6 +201,13 @@ export function createEditionUI(React, store, useBook) {
                   saveStatus==='saved'?`Order details saved · Reference ${order.orderReference}`:
                   saveStatus==='error'?'We could not save the order details. Please try again.':
                   saveStatus==='price_not_set'?'The Tamil book price has not been set. Set it in the admin dashboard, then retry.':
+                  saveStatus==='starting_payment'?'Preparing secure checkout…':
+                  saveStatus==='checkout_open'?'Complete payment in the secure Razorpay window.':
+                  saveStatus==='verifying_payment'?'Payment received · verifying securely…':
+                  saveStatus==='paid'?`Payment confirmed · Order ${order.orderReference}`:
+                  saveStatus==='payment_cancelled'?'Checkout closed. Your order is saved and you can try payment again.':
+                  saveStatus==='payment_failed'?'Payment did not complete. Your order is still saved.':
+                  saveStatus==='verification_error'?'We could not confirm the payment yet. Keep your payment reference and contact the shop.':
                   'Supabase is not connected yet. No order has been sent or saved.'),
                 h('div',{className:'tamil-order-review'},
                   h('p',null,h('strong',null,order.name),h('br'),order.email,h('br'),order.phone),
@@ -153,11 +216,13 @@ export function createEditionUI(React, store, useBook) {
                   order.totalPricePaise?h('p',null,`Total: ${new Intl.NumberFormat('en-IN',{style:'currency',currency:'INR'}).format(order.totalPricePaise/100)}`):null,
                   order.notes?h('p',null,`Delivery note: ${order.notes}`):null),
                 h('div',{className:'payment-placeholder'},
-                  h('p',{className:'payment-placeholder-label'},'Payment gateway · Integration point'),
-                  h('p',null,'Payment is not connected yet. No payment will be taken. '+(saveStatus==='saved'?'The order is saved as pending payment.':'')),
-                  h('button',{type:'button',className:'edition-button',disabled:true},'Payment setup coming soon')),
+                  h('p',{className:'payment-placeholder-label'},'Secure payment'),
+                  h('p',null,saveStatus==='paid'?'Your Tamil book order is paid. We have saved your order details.':`Pay securely for ${order.quantity} ${order.quantity===1?'copy':'copies'} using Razorpay. Your order reference is ${order.orderReference}.`),
+                  paymentMessage?h('p',{className:'order-save-status payment-error','role':'alert'},paymentMessage):null,
+                  h('button',{type:'button',className:'edition-button',disabled:!['saved','payment_cancelled','payment_failed','verification_error'].includes(saveStatus),onClick:startTamilPayment},
+                    saveStatus==='paid'?'Payment complete':saveStatus==='starting_payment'||saveStatus==='verifying_payment'?'Please wait…':'Pay now with Razorpay'))),
                 saveStatus==='error'||saveStatus==='price_not_set'?h('button',{type:'button',className:'edition-button',onClick:()=>saveOrderDetails(order)},saveStatus==='price_not_set'?'Check price & save order':'Retry saving details'):null,
-                h('button',{type:'button',className:'edition-text-button',onClick:()=>setOrderReady(false)},'← Edit delivery details'))))));
+                h('button',{type:'button',className:'edition-text-button',onClick:()=>setOrderReady(false)},'← Edit delivery details')))));
   }
   return {Hero,Selector,PreviewHeading,Purchase};
 }

@@ -21,8 +21,21 @@ Never add `SUPABASE_SECRET_KEY`, `ADMIN_PIN` or `ADMIN_SESSION_SECRET` to a `VIT
 
 For local configuration, keep the existing browser variables in the ignored `.env` file and add the server-only values there. Do not overwrite that file with the example. Vercel Functions can be run locally with `vercel dev` after the Vercel CLI is installed and linked to the project.
 
-## 3. Redeploy and set the Tamil price
+## 3. Configure Razorpay checkout
 
-Redeploy after adding variables. Open `/admin`, sign in with `ADMIN_PIN`, and set the Tamil edition price in rupees. New orders save the price snapshot and remain `pending_payment`; this dashboard does not mark payments as paid.
+Set these server-side environment variables in Vercel → Project → Settings → Environment Variables:
 
-The page records a random browser ID and active visible seconds, without collecting IP addresses. New order and metric records are available in the Supabase dashboard. Email alerts and payment confirmation are separate integrations.
+- `RAZORPAY_KEY_ID`: Razorpay Key ID (the current local credentials are test-mode)
+- `RAZORPAY_KEY_SECRET`: Razorpay Key Secret; server-side only
+- `SUPABASE_URL`: the project URL
+- `SUPABASE_SECRET_KEY`: the Supabase secret key (or the existing `SUPABASE_SERVICE_ROLE_KEY` variable)
+
+Apply `supabase/migrations/20261123000000_razorpay_checkout.sql` in the Supabase SQL Editor after the two existing migrations. This adds Razorpay order/payment references to existing orders; no new table is created.
+
+The frontend creates its Razorpay order from the price snapshot stored with the Tamil order. After checkout, the server checks the HMAC signature and the Razorpay order ID before changing the order status to `paid`. The secret key is never sent to browser code. Configure matching test keys in local `.env` to use `vercel dev`; for production, replace the test credentials with live credentials in Vercel and redeploy.
+
+## 4. Redeploy and set the Tamil price
+
+Redeploy after adding variables. Open `/admin`, sign in with `ADMIN_PIN`, and set the Tamil edition price in rupees. Customers can then submit Tamil delivery details and pay through Razorpay Standard Checkout. Verified payments change the Supabase order status to `paid`, which is visible in the dashboard.
+
+The page records a random browser ID and active visible seconds, without collecting IP addresses. New order and metric records are available in the Supabase dashboard.
